@@ -130,7 +130,7 @@ type copyMethodMaker struct {
 // for the given type, when appropriate
 func (c *copyMethodMaker) GenerateMethodsFor(root *loader.Package, imports *importsList, infos []*markers.TypeInfo) {
 	c.Line(`func init() {`)
-	_ = c.NeedImport("github.com/photowey/fastrouter/api/router") // hard code
+	alias := c.NeedImport("github.com/photowey/fastrouter")
 	for _, info := range infos {
 		if len(info.Markers["fasthttp:router"]) == 0 {
 			continue
@@ -149,7 +149,7 @@ func (c *copyMethodMaker) GenerateMethodsFor(root *loader.Package, imports *impo
 			method = info.Markers["fasthttp:router:method"][0].(string)
 		}
 
-		c.Linef(`router.Register("%s", "%s", &%s{}) // method: %s`, method, routePath, info.Name, method)
+		c.Linef(`%s.Register("%s", "%s", &%s{}) // method: %s`, alias, method, routePath, info.Name, method)
 
 		typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
 		if typeInfo == types.Typ[types.Invalid] {
