@@ -7,7 +7,8 @@ import (
 )
 
 var Fasthttp = &cobra.Command{
-	Use: "fasthttp",
+	Use:     "fasthttp",
+	Aliases: []string{"fh", "fast"},
 	Run: func(c *cobra.Command, rawOpts []string) {
 		fmt.Println("hello prose fasthttp")
 	},
