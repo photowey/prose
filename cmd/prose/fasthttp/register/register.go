@@ -128,14 +128,82 @@ type copyMethodMaker struct {
 
 // GenerateMethodsFor makes init method
 // for the given type, when appropriate
-func (c *copyMethodMaker) GenerateMethodsFor(root *loader.Package, imports *importsList, infos []*markers.TypeInfo) {
-	c.Line(`func init() {`)
-	alias := c.NeedImport("github.com/photowey/fastrouter")
+func (marker *copyMethodMaker) GenerateMethodsFor(root *loader.Package, imports *importsList, infos []*markers.TypeInfo) {
+	marker.Line(`func init() {`)
+	handleFastRouter(root, marker, infos)
+	marker.Line(`}`)
+}
+
+func handleFastRouter(root *loader.Package, maker *copyMethodMaker, infos []*markers.TypeInfo) {
+	if len(infos) == 0 {
+		return
+	}
+	count := 0
 	for _, info := range infos {
 		if len(info.Markers["fasthttp:router"]) == 0 {
 			continue
 		}
 		if !info.Markers["fasthttp:router"][0].(bool) {
+			continue
+		}
+		count++
+	}
+	if count == 0 {
+		return
+	}
+
+	alias := maker.NeedImport("github.com/photowey/fastrouter")
+	for _, info := range infos {
+		if len(info.Markers["fasthttp:router"]) == 0 {
+			continue
+		}
+		if !info.Markers["fasthttp:router"][0].(bool) {
+			continue
+		}
+
+		routePath := ""
+		if len(info.Markers["fasthttp:router:path"]) != 0 {
+			routePath = info.Markers["fasthttp:router:path"][0].(string)
+		}
+
+		method := ""
+		if len(info.Markers["fasthttp:router:method"]) != 0 {
+			method = info.Markers["fasthttp:router:method"][0].(string)
+		}
+
+		maker.Linef(`%s.Register("%s", "%s", &%s{}) // method: %s`, alias, method, routePath, info.Name, method)
+
+		typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
+		if typeInfo == types.Typ[types.Invalid] {
+			root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
+		}
+	}
+}
+
+func handleFastRequest(root *loader.Package, c *copyMethodMaker, infos []*markers.TypeInfo) {
+	if len(infos) == 0 {
+		return
+	}
+	count := 0
+	for _, info := range infos {
+		if len(info.Markers["fasthttp:request"]) == 0 {
+			continue
+		}
+		if !info.Markers["fasthttp:request"][0].(bool) {
+			continue
+		}
+		count++
+	}
+	if count == 0 {
+		return
+	}
+
+	alias := c.NeedImport("github.com/photowey/fastrouter")
+	for _, info := range infos {
+		if len(info.Markers["fasthttp:request"]) == 0 {
+			continue
+		}
+		if !info.Markers["fasthttp:request"][0].(bool) {
 			continue
 		}
 
@@ -156,5 +224,4 @@ func (c *copyMethodMaker) GenerateMethodsFor(root *loader.Package, imports *impo
 			root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
 		}
 	}
-	c.Line(`}`)
 }

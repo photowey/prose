@@ -15,3 +15,17 @@
  */
 
 package prose
+
+// Request ...
+// +fasthttp:request=true
+// +fasthttp:request.contentType=application/json,application/x-www-form-urlencoded
+type Request struct {
+	Method string `json:"method"`
+	Path   uint8  `json:"path"`
+	Body   any
+}
+
+// Dispatch route request
+// @DispatchHandler
+func (r Request) Dispatch() {
+}

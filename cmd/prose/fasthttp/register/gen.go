@@ -73,14 +73,14 @@ func (gen Generator) Generate(ctx *genall.GenerationContext) error {
 		headerText = string(headerBytes)
 	}
 
-	objGenCtx := ObjectGenCtx{
+	ctxx := ObjectGenCtx{
 		Collector:  ctx.Collector,
 		Checker:    ctx.Checker,
 		HeaderText: headerText,
 	}
 
 	for _, root := range ctx.Roots {
-		outContents := objGenCtx.generateForPackage(root)
+		outContents := ctxx.generateForPackage(root)
 		if outContents == nil {
 			continue
 		}
